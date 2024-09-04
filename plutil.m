@@ -55,6 +55,27 @@ CFPropertyListRef readPropertyList(NSString *path)
 
 	path = [path stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
 	if ([[NSFileManager defaultManager] fileExistsAtPath:path]) {
+		// Check if the file is a JSON file based on the extension
+		if ( [[path pathExtension] isEqualToString:@"json"] ) {
+			// Parse the JSON file into a NSDictionary
+			NSData *jsonData = [NSData dataWithContentsOfFile:path];
+			if ( !jsonData ) {
+				fprintf(stderr, "Error: Could not read JSON file at path %s\n", [path UTF8String]);
+				return NULL;
+			}
+
+			NSError *jsonError = nil;
+			id jsonObject = [NSJSONSerialization JSONObjectWithData:jsonData options:0 error:&jsonError];
+			if ( jsonError || ![jsonObject isKindOfClass:[NSDictionary class]] ) {
+				fprintf(stderr, "Error: Invalid JSON format at path %s\n", [path UTF8String]);
+				return NULL;
+			}
+
+			// Convert NSDictionary to CFPropertyListRef
+			return (CFPropertyListRef)CFBridgingRetain(jsonObject);
+		}
+
+		// Read file as plist
 		NSData *plistData = [NSData dataWithContentsOfFile:path];
 		if ([plistData isEqual:[NSData data]]) {
 			// Work with empty files
@@ -219,9 +240,11 @@ void full()
 	puts("  -keys                List top level dictionary keys");
 	puts("\nCreate and Convert Files");
 	puts("  -create              Create a new empty property list");
-	puts("  -convert format      Convert each property list file to selected format.");
-	puts("                       Formats are xml1 and binary1 and json. Note that json");
-	puts("                       files are saved to filename.json");
+	puts("  -convert format      Convert each file to selected format.");
+	puts("                       Formats are xml1, binary1 and json.");
+	puts("                       Note: Converting a property list file to JSON will");
+	puts("                       write to filename.json. Converting a JSON file to xml1");
+	puts("                       or binary will write to filename.plist");
 	puts("  -xml                 Equivalent to -convert xml1");
 	puts("  -binary              Equivalent to -convert binary1");
 	puts("  -json                Equivalent to -convert json. NOT used for typecasting");
@@ -555,6 +578,10 @@ int main(int argc, const char **argv, const char **envp)
 			for (NSString *path in filePaths) {
 				CFPropertyListRef plist = readPropertyList(path);
 				if ( plist ) {
+					BOOL isJSON = [[path pathExtension] isEqualToString:@"json"];
+					if ( isJSON && (plistFormat == 1 || plistFormat == 2) ) {
+						path = [[path stringByDeletingPathExtension] stringByAppendingPathExtension:@"plist"];
+					}
 					if ( plistFormat == 1 ) {
 						WriteMyPropertyListToFile(plist, [NSURL fileURLWithPath:path]);
 					}
