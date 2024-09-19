@@ -80,7 +80,7 @@ CFPropertyListRef readPropertyList(NSString *path)
 		if ([plistData isEqual:[NSData data]]) {
 			// Work with empty files
 			plistData = [@" " dataUsingEncoding:NSUTF8StringEncoding];
-		} 
+		}
 		return CFPropertyListCreateWithData(kCFAllocatorDefault, (CFDataRef)plistData, kCFPropertyListMutableContainers, NULL, &errorString);
 	} else {
 		fprintf(stderr, "Error: File not found at path %s\n", [path UTF8String]);
@@ -198,7 +198,7 @@ NSString *fetchArg(NSString *arg)
 	}
 	arg = [[NSUserDefaults standardUserDefaults] objectForKey:[arg substringFromIndex:1]];
 	if ( !arg ) {
-		fprintf(stderr, "You must supply an argument to -. Bailing.\n"); 
+		fprintf(stderr, "You must supply an argument to -. Bailing.\n");
 		exit(-1);
 	}
 	return arg;
@@ -611,7 +611,7 @@ int main(int argc, const char **argv, const char **envp)
 			else if ( plistFormat == 3 )
 				fileFormat = "json";
 			printf("Converted %d files to %s format\n", convertedFilesCount, fileFormat);
-                        exit(0);
+			exit(0);
 		}
 	}
 	if (errorOut)
