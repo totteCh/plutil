@@ -1,5 +1,5 @@
-ARCHS ?= armv6 arm64
-target ?= iphone:clang:9.3:2.0
+ARCHS ?= arm64
+target ?= iphone:clang:11.4
 include $(THEOS)/makefiles/common.mk
 
 TOOL_NAME = plutil
